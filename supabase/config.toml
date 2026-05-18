@@ -1,0 +1,10 @@
+# Supabase CLI config (optional). Project ref matches your dashboard URL.
+# https://supabase.com/dashboard/project/xxrouryrsamjihukcagu
+
+project_id = "xxrouryrsamjihukcagu"
+
+[api]
+enabled = true
+
+[db]
+major_version = 15

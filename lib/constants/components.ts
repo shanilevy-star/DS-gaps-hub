@@ -1,0 +1,42 @@
+// Seed list of known DS components. Edit this list to match your
+// actual design system. Designers may type free text — anything not in
+// this list will be saved as-is but flagged in the submission row.
+export const KNOWN_COMPONENTS = [
+  "Button",
+  "Input",
+  "Textarea",
+  "Select",
+  "Combobox",
+  "Checkbox",
+  "Radio",
+  "Switch",
+  "Slider",
+  "DatePicker",
+  "Modal",
+  "Drawer",
+  "Popover",
+  "Tooltip",
+  "Toast",
+  "Banner",
+  "Alert",
+  "Badge",
+  "Tag",
+  "Avatar",
+  "Card",
+  "Table",
+  "Tabs",
+  "Accordion",
+  "Breadcrumb",
+  "Pagination",
+  "Stepper",
+  "Progress",
+  "Spinner",
+  "Skeleton",
+  "EmptyState",
+  "Form",
+  "Navigation",
+  "Sidebar",
+  "Menu",
+] as const;
+
+export type KnownComponent = (typeof KNOWN_COMPONENTS)[number];
