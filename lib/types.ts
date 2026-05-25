@@ -1,6 +1,3 @@
-import type { FrequencyImpactValue } from "@/lib/constants/frequency-impact";
-import type { GapTypeValue } from "@/lib/constants/gap-types";
-
 export type SubmissionImage = {
   id: string;
   submission_id: string;
@@ -21,8 +18,8 @@ export type Submission = {
   use_case: string;
   why_insufficient: string;
   proposed_support: string;
-  gap_type: GapTypeValue;
-  frequency_impact: FrequencyImpactValue;
+  gap_type: string;
+  frequency_impact: string;
   figma_url: string | null;
   storybook_url: string | null;
   open_questions: string | null;

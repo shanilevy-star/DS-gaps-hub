@@ -13,9 +13,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { GAP_TYPES } from "@/lib/constants/gap-types";
+import { TEAMS } from "@/lib/constants/teams";
 
 const ALL = "__all__";
 const MINE = "mine";
+const filterSelectContentProps = {
+  position: "popper" as const,
+  side: "bottom" as const,
+  align: "start" as const,
+  sideOffset: 4,
+  avoidCollisions: true,
+};
 
 export type FilterOptions = {
   teams: string[];
@@ -106,12 +114,15 @@ export function SubmissionsFilters({
           value={initial.team || ALL}
           onValueChange={(value) => updateParam("team", value)}
         >
-          <SelectTrigger className="w-[180px]" aria-label="Filter by team">
-            <SelectValue placeholder="All teams" />
+          <SelectTrigger
+            className="w-[220px]"
+            aria-label="Filter by team / product area"
+          >
+            <SelectValue placeholder="All teams / products" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL}>All teams</SelectItem>
-            {options.teams.map((team) => (
+          <SelectContent {...filterSelectContentProps}>
+            <SelectItem value={ALL}>All teams / products</SelectItem>
+            {TEAMS.map((team) => (
               <SelectItem key={team} value={team}>
                 {team}
               </SelectItem>
@@ -126,7 +137,7 @@ export function SubmissionsFilters({
           <SelectTrigger className="w-[200px]" aria-label="Filter by component">
             <SelectValue placeholder="All components" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent {...filterSelectContentProps}>
             <SelectItem value={ALL}>All components</SelectItem>
             {options.components.map((component) => (
               <SelectItem key={component} value={component}>
@@ -143,7 +154,7 @@ export function SubmissionsFilters({
           <SelectTrigger className="w-[180px]" aria-label="Filter by gap type">
             <SelectValue placeholder="All gap types" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent {...filterSelectContentProps}>
             <SelectItem value={ALL}>All gap types</SelectItem>
             {GAP_TYPES.map((gap) => (
               <SelectItem key={gap.value} value={gap.value}>
@@ -161,7 +172,7 @@ export function SubmissionsFilters({
             <SelectTrigger className="w-[150px]" aria-label="Scope">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent {...filterSelectContentProps}>
               <SelectItem value="all">Everyone</SelectItem>
               <SelectItem value={MINE}>Just mine</SelectItem>
             </SelectContent>

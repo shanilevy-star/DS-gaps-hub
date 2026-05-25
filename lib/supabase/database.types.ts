@@ -1,9 +1,6 @@
 // Hand-maintained types matching supabase/migrations/001_initial.sql.
 // If the migration changes, update these to match.
 
-import type { FrequencyImpactValue } from "@/lib/constants/frequency-impact";
-import type { GapTypeValue } from "@/lib/constants/gap-types";
-
 export type Json =
   | string
   | number
@@ -28,8 +25,8 @@ export interface Database {
           use_case: string;
           why_insufficient: string;
           proposed_support: string;
-          gap_type: GapTypeValue;
-          frequency_impact: FrequencyImpactValue;
+          gap_type: string;
+          frequency_impact: string;
           figma_url: string | null;
           storybook_url: string | null;
           open_questions: string | null;
@@ -46,8 +43,8 @@ export interface Database {
           use_case: string;
           why_insufficient: string;
           proposed_support: string;
-          gap_type: GapTypeValue;
-          frequency_impact: FrequencyImpactValue;
+          gap_type: string;
+          frequency_impact: string;
           figma_url?: string | null;
           storybook_url?: string | null;
           open_questions?: string | null;

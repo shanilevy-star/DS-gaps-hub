@@ -1,5 +1,4 @@
 import { AppNav } from "@/components/app/app-nav";
-import { AppFooter } from "@/components/app/app-footer";
 import { UserMenu } from "@/components/app/user-menu";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
@@ -29,7 +28,6 @@ export default async function AppLayout({
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
         {children}
       </main>
-      <AppFooter />
     </>
   );
 }

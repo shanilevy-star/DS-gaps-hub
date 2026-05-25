@@ -2,7 +2,6 @@ import Link from "next/link";
 import { EmptyState } from "@/components/app/empty-state";
 import { SetupNotice } from "@/components/app/setup-notice";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { AiSection } from "@/components/dashboard/ai-section";
 import { CountBars } from "@/components/dashboard/count-bars";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -17,7 +16,7 @@ import type { Submission } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Dashboard | DS Gap Insights",
+  title: "Gap prioritization dashboard | DS Gap Hub",
 };
 
 type SubmissionLite = Pick<
@@ -38,11 +37,11 @@ export default async function DashboardPage() {
       <div className="space-y-6">
         <header className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">
-            DS Gap Insights
+            Gap prioritization dashboard
           </h1>
           <p className="max-w-prose text-sm text-muted-foreground">
-            AI-assisted summary, groupings, and recommendations across all
-            submitted gaps.
+            Track submitted DS gaps, repeated patterns, and AI-recommended
+            fixes.
           </p>
         </header>
         <SetupNotice />
@@ -116,17 +115,6 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       <DashboardHeader />
 
-      <AiSection
-        initialRun={latestRun}
-        submissionsForGrouping={submissions.map((s) => ({
-          id: s.id,
-          title: s.title,
-          team: s.team,
-          component_name: s.component_name,
-        }))}
-        totalSubmissions={submissions.length}
-      />
-
       <section
         aria-labelledby="totals-heading"
         className="space-y-3"
@@ -198,7 +186,16 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      <Separator />
+      <AiSection
+        initialRun={latestRun}
+        submissionsForGrouping={submissions.map((s) => ({
+          id: s.id,
+          title: s.title,
+          team: s.team,
+          component_name: s.component_name,
+        }))}
+        totalSubmissions={submissions.length}
+      />
 
       <section
         aria-labelledby="recent-heading"
@@ -221,10 +218,11 @@ export default async function DashboardPage() {
 function DashboardHeader() {
   return (
     <header className="space-y-2">
-      <h1 className="text-2xl font-semibold tracking-tight">DS Gap Insights</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">
+        Gap prioritization dashboard
+      </h1>
       <p className="max-w-prose text-sm text-muted-foreground">
-        AI-assisted summary, groupings, and recommendations across all
-        submitted gaps.
+        Track submitted DS gaps, repeated patterns, and AI-recommended fixes.
       </p>
     </header>
   );

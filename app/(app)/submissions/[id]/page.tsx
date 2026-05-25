@@ -23,25 +23,32 @@ export async function generateMetadata({
 }) {
   const { id } = await params;
   return {
-    title: `Submission ${id.slice(0, 8)} | DS Gap Insights`,
+    title: `Submission ${id.slice(0, 8)} | DS Gap Hub`,
   };
 }
 
 export default async function SubmissionDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string }>;
 }) {
+  const { id } = await params;
+  const { from } = await searchParams;
+  const backHref = from === "dashboard-ai" ? "/dashboard#ai-insights" : "/submissions";
+  const backLabel =
+    from === "dashboard-ai" ? "Back to AI insights" : "Back to submissions";
+
   if (!isSupabaseConfigured()) {
     return (
       <div className="space-y-6">
-        <BackLink />
+        <BackLink href={backHref} label={backLabel} />
         <SetupNotice />
       </div>
     );
   }
 
-  const { id } = await params;
   const supabase = await createClient();
 
   const [{ data: submissionRow, error: submissionError }, { data: imageRows }] =
@@ -64,7 +71,7 @@ export default async function SubmissionDetailPage({
 
   return (
     <article className="space-y-8">
-      <BackLink />
+      <BackLink href={backHref} label={backLabel} />
 
       <header className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -102,13 +109,19 @@ export default async function SubmissionDetailPage({
         <DetailSection title="Problem description">
           {submission.problem_description}
         </DetailSection>
-        <DetailSection title="Use case">{submission.use_case}</DetailSection>
-        <DetailSection title="Why the current component is insufficient">
-          {submission.why_insufficient}
+        <DetailSection title="Where this is needed">
+          {submission.use_case}
         </DetailSection>
-        <DetailSection title="Proposed support needed">
-          {submission.proposed_support}
-        </DetailSection>
+        {submission.why_insufficient ? (
+          <DetailSection title="Why the current component is insufficient">
+            {submission.why_insufficient}
+          </DetailSection>
+        ) : null}
+        {submission.proposed_support ? (
+          <DetailSection title="Proposed support needed">
+            {submission.proposed_support}
+          </DetailSection>
+        ) : null}
         {submission.open_questions ? (
           <DetailSection title="Open questions / considerations">
             {submission.open_questions}
@@ -150,12 +163,12 @@ export default async function SubmissionDetailPage({
   );
 }
 
-function BackLink() {
+function BackLink({ href, label }: { href: string; label: string }) {
   return (
     <Button asChild variant="ghost" size="sm" className="-ml-3">
-      <Link href="/submissions">
+      <Link href={href}>
         <ArrowLeft className="mr-1 size-3.5" aria-hidden />
-        Back to submissions
+        {label}
       </Link>
     </Button>
   );

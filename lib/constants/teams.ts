@@ -2,14 +2,15 @@
 // Keeping team names consistent is the single biggest lever for
 // good cross-team AI grouping in the dashboard.
 export const TEAMS = [
-  "Checkout",
-  "Growth",
-  "Onboarding",
-  "Reports & Analytics",
-  "Settings & Admin",
-  "Mobile Apps",
-  "Marketing Site",
-  "Other",
+  "Hiring intelligence",
+  "RX",
+  "EX",
+  "CX",
+  "MX",
+  "IX",
+  "Automation Engine",
+  "Agents",
+  "SPX",
 ] as const;
 
 export type Team = (typeof TEAMS)[number];

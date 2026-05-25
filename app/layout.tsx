@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DS Gap Insights",
+  title: "DS Gap Hub",
   description:
     "Internal tool for submitting and analyzing design system component gaps.",
 };

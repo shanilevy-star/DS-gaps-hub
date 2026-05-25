@@ -1,4 +1,4 @@
-# DS Gap Insights
+# DS Gap Hub
 
 Internal prototype for collecting and analyzing design system component gaps. Designers submit gaps through a structured form; the DS team gets an AI-assisted dashboard that summarizes repeated requests and recommends what to prioritize next.
 

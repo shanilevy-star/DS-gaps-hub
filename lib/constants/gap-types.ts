@@ -62,5 +62,15 @@ export const GAP_TYPES: ReadonlyArray<GapTypeDescriptor> = [
 ];
 
 export function gapTypeLabel(value: string): string {
-  return GAP_TYPES.find((g) => g.value === value)?.label ?? value;
+  return value
+    .split("|")
+    .map((part) => {
+      if (part.startsWith("other:")) {
+        const detail = part.replace(/^other:/, "").trim();
+        return detail ? `Other: ${detail}` : "Other";
+      }
+
+      return GAP_TYPES.find((g) => g.value === part)?.label ?? part;
+    })
+    .join(", ");
 }

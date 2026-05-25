@@ -1,4 +1,4 @@
-# Setup — DS Gap Insights + your Supabase project
+# Setup — DS Gap Hub + your Supabase project
 
 Project dashboard: [xxrouryrsamjihukcagu](https://supabase.com/dashboard/project/xxrouryrsamjihukcagu)
 
@@ -28,7 +28,7 @@ Open the [SQL Editor](https://supabase.com/dashboard/project/xxrouryrsamjihukcag
 
 **[`supabase/setup-all.sql`](supabase/setup-all.sql)**
 
-This creates tables, RLS policies, the `submission-images` storage bucket, and (if empty) ~20 demo submissions.
+This creates tables, RLS policies, and the `submission-images` storage bucket. It does not create demo submissions.
 
 ## 3. Configure Auth URLs
 
@@ -37,9 +37,11 @@ Open [Authentication → URL Configuration](https://supabase.com/dashboard/proje
 | Field | Value |
 |--------|--------|
 | **Site URL** | `http://localhost:3000` |
-| **Redirect URLs** | `http://localhost:3000/auth/callback` |
+| **Redirect URLs** | `http://localhost:3000/auth/callback`, `http://localhost:3000/reset-password` |
 
 Ensure **Email** provider is enabled under [Auth Providers](https://supabase.com/dashboard/project/xxrouryrsamjihukcagu/auth/providers).
+
+When deploying, also add your production reset URL, e.g. `https://YOUR_DOMAIN/reset-password`.
 
 ## 4. Start the app
 

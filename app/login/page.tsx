@@ -1,12 +1,10 @@
 import Link from "next/link";
-import { AppFooter } from "@/components/app/app-footer";
-import { PrototypeBadge } from "@/components/app/prototype-badge";
 import { SetupNotice } from "@/components/app/setup-notice";
 import { LoginForm } from "@/components/auth/login-form";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const metadata = {
-  title: "Sign in | DS Gap Insights",
+  title: "Sign in | DS Gap Hub",
 };
 
 export default function LoginPage({
@@ -20,14 +18,13 @@ export default function LoginPage({
         <div className="space-y-2 text-center">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm font-semibold tracking-tight"
+            className="text-sm font-semibold tracking-tight"
           >
-            <span>DS Gap Insights</span>
-            <PrototypeBadge />
+            DS Gap Hub
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
           <p className="text-sm text-muted-foreground">
-            We&apos;ll email you a magic link &mdash; no password needed.
+            Sign in with your work email and password.
           </p>
         </div>
         {isSupabaseConfigured() ? (
@@ -36,7 +33,6 @@ export default function LoginPage({
           <SetupNotice />
         )}
       </main>
-      <AppFooter />
     </>
   );
 }

@@ -37,5 +37,15 @@ export const FREQUENCY_IMPACT: ReadonlyArray<FrequencyImpactDescriptor> = [
 ];
 
 export function frequencyImpactLabel(value: string): string {
-  return FREQUENCY_IMPACT.find((f) => f.value === value)?.label ?? value;
+  const additionalLabels: Record<string, string> = {
+    cross_product_need: "Cross-product need",
+    repeated_product_need: "Repeated product need",
+    one_time_use_case: "One-time use case",
+  };
+
+  return (
+    FREQUENCY_IMPACT.find((f) => f.value === value)?.label ??
+    additionalLabels[value] ??
+    value
+  );
 }

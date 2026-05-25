@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { PrototypeBadge } from "./prototype-badge";
-
 const LINKS = [
   { href: "/submit", label: "Submit a gap" },
   { href: "/submissions", label: "Submissions" },
@@ -18,10 +16,9 @@ export function AppNav({ rightSlot }: { rightSlot?: React.ReactNode }) {
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4 sm:px-6">
         <Link
           href="/"
-          className="flex items-center gap-2 text-sm font-semibold tracking-tight"
+          className="text-sm font-semibold tracking-tight"
         >
-          <span>DS Gap Insights</span>
-          <PrototypeBadge />
+          DS Gap Hub
         </Link>
         <nav className="flex items-center gap-1">
           {LINKS.map((link) => {

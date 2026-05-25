@@ -15,7 +15,7 @@ import type { Submission } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Submissions | DS Gap Insights",
+  title: "Submissions | DS Gap Hub",
 };
 
 type SearchParams = {
@@ -25,6 +25,15 @@ type SearchParams = {
   gap_type?: string;
   scope?: string;
 };
+
+const DEMO_SUBMITTER_EMAILS = new Set([
+  "maya@example.com",
+  "theo@example.com",
+  "priya@example.com",
+  "sam@example.com",
+  "noor@example.com",
+  "lin@example.com",
+]);
 
 export default async function SubmissionsPage({
   searchParams,
@@ -63,7 +72,7 @@ export default async function SubmissionsPage({
   let query = supabase
     .from("submissions")
     .select(
-      "id, title, component_name, team, gap_type, frequency_impact, submitter_email, created_at",
+      "id, title, component_name, team, gap_type, frequency_impact, submitted_by, submitter_email, created_at",
     )
     .order("created_at", { ascending: false })
     .limit(200);
@@ -102,7 +111,7 @@ export default async function SubmissionsPage({
     );
   }
 
-  const submissions = (data ?? []) as Pick<
+  const submissions = ((data ?? []) as Pick<
     Submission,
     | "id"
     | "title"
@@ -110,9 +119,14 @@ export default async function SubmissionsPage({
     | "team"
     | "gap_type"
     | "frequency_impact"
+    | "submitted_by"
     | "submitter_email"
     | "created_at"
-  >[];
+  >[]).filter(
+    (submission) =>
+      !submission.submitter_email ||
+      !DEMO_SUBMITTER_EMAILS.has(submission.submitter_email),
+  );
 
   const knownTeams = Array.from(
     new Set<string>([...TEAMS, ...submissions.map((s) => s.team)]),
@@ -160,18 +174,21 @@ export default async function SubmissionsPage({
           description={
             hasActiveFilters
               ? "Try removing a filter or broadening your search."
-              : "Once designers start submitting gaps, they'll show up here."
+              : "Submitted component gaps will appear here once designers start reporting issues."
           }
           action={
             <Button asChild size="sm">
               <Link href={hasActiveFilters ? "/submissions" : "/submit"}>
-                {hasActiveFilters ? "Clear filters" : "Submit the first gap"}
+                {hasActiveFilters ? "Clear filters" : "Submit a gap"}
               </Link>
             </Button>
           }
         />
       ) : (
-        <SubmissionsTable submissions={submissions} />
+        <SubmissionsTable
+          submissions={submissions}
+          currentUserId={user?.id ?? null}
+        />
       )}
 
       <p className="text-xs text-muted-foreground">

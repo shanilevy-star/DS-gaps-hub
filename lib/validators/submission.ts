@@ -1,6 +1,11 @@
 import { z } from "zod";
-import { FREQUENCY_IMPACT_VALUES } from "@/lib/constants/frequency-impact";
 import { GAP_TYPE_VALUES } from "@/lib/constants/gap-types";
+
+const FORM_FREQUENCY_IMPACT_VALUES = [
+  "cross_product_need",
+  "repeated_product_need",
+  "one_time_use_case",
+] as const;
 
 const requiredText = (label: string, min: number, max = 2000) =>
   z
@@ -8,6 +13,13 @@ const requiredText = (label: string, min: number, max = 2000) =>
     .trim()
     .min(min, `${label} is required.`)
     .max(max, `${label} must be ${max} characters or fewer.`);
+
+const optionalText = (label: string, max = 2000) =>
+  z
+    .string()
+    .trim()
+    .max(max, `${label} must be ${max} characters or fewer.`)
+    .default("");
 
 const optionalUrl = z
   .string()
@@ -29,23 +41,27 @@ export const submissionSchema = z.object({
     .trim()
     .min(1, "Add a component name.")
     .max(120),
-  gap_type: z.enum(GAP_TYPE_VALUES, {
-    message: "Pick a gap type.",
-  }),
-  frequency_impact: z.enum(FREQUENCY_IMPACT_VALUES, {
+  gap_type: z
+    .array(z.enum(GAP_TYPE_VALUES))
+    .min(1, "Select at least one gap type."),
+  gap_type_other: z.string().trim().max(160).default(""),
+  frequency_impact: z.enum(FORM_FREQUENCY_IMPACT_VALUES, {
     message: "Pick a frequency.",
   }),
   problem_description: requiredText("Problem description", 10),
   use_case: requiredText("Use case", 5),
-  why_insufficient: requiredText("Why the current component is insufficient", 5),
-  proposed_support: requiredText("Proposed support needed", 5),
+  proposed_support: optionalText("Proposed support needed"),
   figma_url: optionalUrl.default(""),
   storybook_url: optionalUrl.default(""),
-  open_questions: z
-    .string()
-    .trim()
-    .max(2000, "Open questions must be 2000 characters or fewer.")
-    .default(""),
+  open_questions: optionalText("Open questions"),
+}).superRefine((value, ctx) => {
+  if (value.gap_type.includes("other") && value.gap_type_other.trim() === "") {
+    ctx.addIssue({
+      code: "custom",
+      path: ["gap_type_other"],
+      message: "Describe the other gap type.",
+    });
+  }
 });
 
 export type SubmissionInput = z.input<typeof submissionSchema>;
