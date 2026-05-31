@@ -312,7 +312,10 @@ export function SubmissionForm({
         </FieldRow>
 
         <FieldRow>
-          <Label>Framework</Label>
+          <Label>
+            Framework{" "}
+            <span className="font-normal text-muted-foreground">(Optional)</span>
+          </Label>
           <Controller
             control={control}
             name="framework"
