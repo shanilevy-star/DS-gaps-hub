@@ -42,7 +42,7 @@ export const submissionSchema = z.object({
     .trim()
     .min(1, "Add a component name.")
     .max(120),
-  framework: z.enum(FRAMEWORK_VALUES).optional(),
+  framework: z.array(z.enum(FRAMEWORK_VALUES)).default([]),
   gap_type: z
     .array(z.enum(GAP_TYPE_VALUES))
     .min(1, "Select at least one gap type."),
@@ -57,14 +57,6 @@ export const submissionSchema = z.object({
   storybook_url: optionalUrl.default(""),
   open_questions: optionalText("Open questions"),
 }).superRefine((value, ctx) => {
-  if (!value.framework) {
-    ctx.addIssue({
-      code: "custom",
-      path: ["framework"],
-      message: "Pick a framework.",
-    });
-  }
-
   if (value.gap_type.includes("other") && value.gap_type_other.trim() === "") {
     ctx.addIssue({
       code: "custom",

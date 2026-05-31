@@ -33,7 +33,7 @@ alter table public.submissions
 
 alter table public.submissions
   add constraint submissions_framework_check
-  check (framework is null or framework in ('angular', 'react'));
+  check (framework is null or framework in ('angular', 'react', 'angular|react'));
 
 create index if not exists submissions_created_at_idx
   on public.submissions (created_at desc);

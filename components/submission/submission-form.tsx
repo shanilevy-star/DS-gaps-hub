@@ -24,7 +24,7 @@ import {
   type StagedImage,
 } from "@/components/submission/image-uploader";
 import { KNOWN_COMPONENTS } from "@/lib/constants/components";
-import { FRAMEWORKS } from "@/lib/constants/frameworks";
+import { FRAMEWORKS, serializeFrameworks } from "@/lib/constants/frameworks";
 import { GAP_TYPES } from "@/lib/constants/gap-types";
 import { TEAMS } from "@/lib/constants/teams";
 import { resizeImage } from "@/lib/image-resize";
@@ -158,7 +158,7 @@ export function SubmissionForm({
       const submissionPayload = {
         team: input.team.trim(),
         component_name: input.component_name.trim(),
-        framework: input.framework as NonNullable<SubmissionInput["framework"]>,
+        framework: serializeFrameworks(input.framework ?? []),
         title: input.title.trim(),
         problem_description: input.problem_description.trim(),
         use_case: input.use_case.trim(),
@@ -317,11 +317,12 @@ export function SubmissionForm({
             control={control}
             name="framework"
             render={({ field }) => (
-              <SingleSelectDropdown
+              <MultiSelectDropdown
                 ariaLabel="Framework"
                 options={FRAMEWORKS}
-                placeholder="Select framework"
-                value={field.value}
+                placeholder="Select one or more"
+                searchPlaceholder="Search frameworks..."
+                value={field.value ?? []}
                 onChange={field.onChange}
                 ariaInvalid={Boolean(errors.framework)}
               />

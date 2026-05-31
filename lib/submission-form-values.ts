@@ -1,3 +1,4 @@
+import { parseFrameworks } from "@/lib/constants/frameworks";
 import { GAP_TYPE_VALUES, type GapTypeValue } from "@/lib/constants/gap-types";
 import type { Submission } from "@/lib/types";
 import type { SubmissionInput } from "@/lib/validators/submission";
@@ -6,7 +7,7 @@ export const defaultSubmissionValues: SubmissionInput = {
   title: "",
   team: "",
   component_name: "",
-  framework: undefined as unknown as SubmissionInput["framework"],
+  framework: [],
   gap_type: [],
   gap_type_other: "",
   frequency_impact: undefined as unknown as SubmissionInput["frequency_impact"],
@@ -84,9 +85,7 @@ export function submissionToFormValues(
     title: submission.title,
     team: submission.team,
     component_name: submission.component_name,
-    framework: (submission.framework ?? undefined) as
-      | SubmissionInput["framework"]
-      | undefined,
+    framework: parseFrameworks(submission.framework),
     frequency_impact:
       submission.frequency_impact as SubmissionInput["frequency_impact"],
     problem_description: submission.problem_description,
