@@ -6,6 +6,7 @@ export const defaultSubmissionValues: SubmissionInput = {
   title: "",
   team: "",
   component_name: "",
+  framework: undefined as unknown as SubmissionInput["framework"],
   gap_type: [],
   gap_type_other: "",
   frequency_impact: undefined as unknown as SubmissionInput["frequency_impact"],
@@ -66,6 +67,7 @@ export function submissionToFormValues(
     | "title"
     | "team"
     | "component_name"
+    | "framework"
     | "gap_type"
     | "frequency_impact"
     | "problem_description"
@@ -82,6 +84,9 @@ export function submissionToFormValues(
     title: submission.title,
     team: submission.team,
     component_name: submission.component_name,
+    framework: (submission.framework ?? undefined) as
+      | SubmissionInput["framework"]
+      | undefined,
     frequency_impact:
       submission.frequency_impact as SubmissionInput["frequency_impact"],
     problem_description: submission.problem_description,

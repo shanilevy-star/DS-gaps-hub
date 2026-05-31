@@ -12,6 +12,7 @@ create table if not exists public.submissions (
   submitter_email text,
   team text not null,
   component_name text not null,
+  framework text,
   title text not null,
   problem_description text not null,
   use_case text not null,
@@ -23,6 +24,16 @@ create table if not exists public.submissions (
   storybook_url text,
   open_questions text
 );
+
+alter table public.submissions
+  add column if not exists framework text;
+
+alter table public.submissions
+  drop constraint if exists submissions_framework_check;
+
+alter table public.submissions
+  add constraint submissions_framework_check
+  check (framework is null or framework in ('angular', 'react'));
 
 create index if not exists submissions_created_at_idx
   on public.submissions (created_at desc);

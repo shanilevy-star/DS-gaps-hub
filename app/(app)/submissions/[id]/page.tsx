@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ImageGallery } from "@/components/submissions/image-gallery";
+import { frameworkLabel } from "@/lib/constants/frameworks";
 import { frequencyImpactLabel } from "@/lib/constants/frequency-impact";
 import { gapTypeLabel } from "@/lib/constants/gap-types";
 import { formatAbsolute, formatRelativeShort } from "@/lib/format";
@@ -79,12 +80,17 @@ export default async function SubmissionDetailPage({
           <Badge variant="outline">
             {frequencyImpactLabel(submission.frequency_impact)}
           </Badge>
+          <Badge variant="outline">{frameworkLabel(submission.framework)}</Badge>
         </div>
         <h1 className="text-2xl font-semibold tracking-tight">
           {submission.title}
         </h1>
         <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
           <DetailMetaItem label="Component" value={submission.component_name} />
+          <DetailMetaItem
+            label="Framework"
+            value={frameworkLabel(submission.framework)}
+          />
           <DetailMetaItem label="Team" value={submission.team} />
           <DetailMetaItem
             label="Submitted"

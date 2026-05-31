@@ -1,4 +1,5 @@
 export const GAP_TYPE_VALUES = [
+  "missing_component",
   "missing_variant",
   "missing_state",
   "missing_interaction",
@@ -18,6 +19,11 @@ type GapTypeDescriptor = {
 };
 
 export const GAP_TYPES: ReadonlyArray<GapTypeDescriptor> = [
+  {
+    value: "missing_component",
+    label: "Missing component",
+    description: "A needed component does not exist in the design system.",
+  },
   {
     value: "missing_variant",
     label: "Missing variant",

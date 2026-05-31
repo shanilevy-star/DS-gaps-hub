@@ -24,6 +24,7 @@ import {
   type StagedImage,
 } from "@/components/submission/image-uploader";
 import { KNOWN_COMPONENTS } from "@/lib/constants/components";
+import { FRAMEWORKS } from "@/lib/constants/frameworks";
 import { GAP_TYPES } from "@/lib/constants/gap-types";
 import { TEAMS } from "@/lib/constants/teams";
 import { resizeImage } from "@/lib/image-resize";
@@ -157,6 +158,7 @@ export function SubmissionForm({
       const submissionPayload = {
         team: input.team.trim(),
         component_name: input.component_name.trim(),
+        framework: input.framework as NonNullable<SubmissionInput["framework"]>,
         title: input.title.trim(),
         problem_description: input.problem_description.trim(),
         use_case: input.use_case.trim(),
@@ -307,6 +309,25 @@ export function SubmissionForm({
             )}
           />
           <FieldError message={errors.component_name?.message} />
+        </FieldRow>
+
+        <FieldRow>
+          <Label>Framework</Label>
+          <Controller
+            control={control}
+            name="framework"
+            render={({ field }) => (
+              <SingleSelectDropdown
+                ariaLabel="Framework"
+                options={FRAMEWORKS}
+                placeholder="Select framework"
+                value={field.value}
+                onChange={field.onChange}
+                ariaInvalid={Boolean(errors.framework)}
+              />
+            )}
+          />
+          <FieldError message={errors.framework?.message as string | undefined} />
         </FieldRow>
 
         <FieldRow>

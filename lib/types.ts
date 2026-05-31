@@ -13,6 +13,7 @@ export type Submission = {
   submitter_email: string | null;
   team: string;
   component_name: string;
+  framework: string | null;
   title: string;
   problem_description: string;
   use_case: string;
