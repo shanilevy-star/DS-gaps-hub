@@ -324,7 +324,7 @@ export function SubmissionForm({
                 ariaLabel="Framework"
                 options={FRAMEWORKS}
                 placeholder="Select one or more"
-                searchPlaceholder="Search frameworks..."
+                searchable={false}
                 value={field.value ?? []}
                 onChange={field.onChange}
                 ariaInvalid={Boolean(errors.framework)}

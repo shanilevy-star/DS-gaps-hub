@@ -30,6 +30,7 @@ export function MultiSelectDropdown<TValue extends string>({
   options,
   placeholder,
   searchPlaceholder = "Search options...",
+  searchable = true,
   ariaLabel,
   ariaInvalid,
 }: {
@@ -38,6 +39,7 @@ export function MultiSelectDropdown<TValue extends string>({
   options: ReadonlyArray<MultiSelectOption<TValue>>;
   placeholder: string;
   searchPlaceholder?: string;
+  searchable?: boolean;
   ariaLabel?: string;
   ariaInvalid?: boolean;
 }) {
@@ -87,7 +89,7 @@ export function MultiSelectDropdown<TValue extends string>({
         align="start"
       >
         <Command>
-          <CommandInput placeholder={searchPlaceholder} />
+          {searchable ? <CommandInput placeholder={searchPlaceholder} /> : null}
           <CommandList>
             <CommandEmpty>No gap types found.</CommandEmpty>
             <CommandGroup>
