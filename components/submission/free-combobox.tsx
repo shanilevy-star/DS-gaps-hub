@@ -30,6 +30,7 @@ export function FreeCombobox({
   searchPlaceholder,
   emptyLabel,
   id,
+  contentClassName,
   ariaLabel,
   ariaInvalid,
 }: {
@@ -40,6 +41,7 @@ export function FreeCombobox({
   searchPlaceholder?: string;
   emptyLabel?: string;
   id?: string;
+  contentClassName?: string;
   ariaLabel?: string;
   ariaInvalid?: boolean;
 }) {
@@ -82,7 +84,7 @@ export function FreeCombobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[--radix-popover-trigger-width] p-0"
+        className={cn("w-[--radix-popover-trigger-width] p-0", contentClassName)}
         align="start"
       >
         <Command shouldFilter>

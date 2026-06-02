@@ -304,6 +304,7 @@ export function SubmissionForm({
                 options={KNOWN_COMPONENTS}
                 placeholder="Which DS component?"
                 searchPlaceholder="Search or type a new component..."
+                contentClassName="w-[min(calc(100vw-2rem),28rem)]"
                 ariaInvalid={Boolean(errors.component_name)}
               />
             )}
