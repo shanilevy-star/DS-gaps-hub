@@ -13,6 +13,7 @@ create table if not exists public.submissions (
   team text not null,
   component_name text not null,
   framework text,
+  is_blocking boolean,
   title text not null,
   problem_description text not null,
   use_case text not null,
@@ -35,6 +36,9 @@ alter table public.submissions
   add constraint submissions_framework_check
   check (framework is null or framework in ('angular', 'react', 'angular|react'));
 
+alter table public.submissions
+  add column if not exists is_blocking boolean;
+
 create index if not exists submissions_created_at_idx
   on public.submissions (created_at desc);
 create index if not exists submissions_team_idx
@@ -43,6 +47,8 @@ create index if not exists submissions_component_idx
   on public.submissions (component_name);
 create index if not exists submissions_gap_type_idx
   on public.submissions (gap_type);
+create index if not exists submissions_is_blocking_idx
+  on public.submissions (is_blocking);
 
 create table if not exists public.submission_images (
   id uuid primary key default gen_random_uuid(),

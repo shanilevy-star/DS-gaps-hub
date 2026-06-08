@@ -2,6 +2,8 @@
 // The dashboard depends on this contract - if you change it, update both the
 // fixture generator and the live prompt response schema together.
 
+import type { AiPriority } from "@/lib/constants/priority";
+
 export type DataSufficiency = "low" | "medium" | "high";
 
 export type GapClassification =
@@ -36,6 +38,7 @@ export type AnalysisRecommendation = {
   title: string;
   rationale: string;
   suggested_action: SuggestedAction;
+  priority?: AiPriority;
   confidence: Confidence;
   related_group_ids: string[];
 };

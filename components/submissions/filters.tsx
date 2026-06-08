@@ -41,6 +41,7 @@ export function SubmissionsFilters({
     team: string;
     component: string;
     gapType: string;
+    blocking: string;
     scope: "all" | "mine";
   };
   signedInUserId: string | null;
@@ -91,6 +92,7 @@ export function SubmissionsFilters({
     initial.team ||
     initial.component ||
     initial.gapType ||
+    initial.blocking ||
     initial.scope === "mine";
 
   return (
@@ -161,6 +163,20 @@ export function SubmissionsFilters({
                 {gap.label}
               </SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={initial.blocking || ALL}
+          onValueChange={(value) => updateParam("blocking", value)}
+        >
+          <SelectTrigger className="w-[170px]" aria-label="Filter by blocking">
+            <SelectValue placeholder="Blocking" />
+          </SelectTrigger>
+          <SelectContent {...filterSelectContentProps}>
+            <SelectItem value={ALL}>All blocking statuses</SelectItem>
+            <SelectItem value="yes">Blocking</SelectItem>
+            <SelectItem value="no">Not blocking</SelectItem>
           </SelectContent>
         </Select>
 

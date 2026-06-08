@@ -23,6 +23,7 @@ type SearchParams = {
   team?: string;
   component?: string;
   gap_type?: string;
+  blocking?: string;
   scope?: string;
 };
 
@@ -59,6 +60,9 @@ export default async function SubmissionsPage({
   const team = params.team ?? "";
   const component = params.component ?? "";
   const gapTypeRaw = params.gap_type ?? "";
+  const blocking = params.blocking === "yes" || params.blocking === "no"
+    ? params.blocking
+    : "";
   const gapType: GapTypeValue | "" = (
     GAP_TYPE_VALUES as readonly string[]
   ).includes(gapTypeRaw)
@@ -72,7 +76,7 @@ export default async function SubmissionsPage({
   let query = supabase
     .from("submissions")
     .select(
-      "id, title, component_name, team, gap_type, frequency_impact, submitted_by, submitter_email, created_at",
+      "id, title, component_name, team, gap_type, frequency_impact, is_blocking, submitted_by, submitter_email, created_at",
     )
     .order("created_at", { ascending: false })
     .limit(200);
@@ -87,6 +91,8 @@ export default async function SubmissionsPage({
   if (team) query = query.eq("team", team);
   if (component) query = query.eq("component_name", component);
   if (gapType) query = query.eq("gap_type", gapType);
+  if (blocking === "yes") query = query.eq("is_blocking", true);
+  if (blocking === "no") query = query.eq("is_blocking", false);
   if (scope === "mine" && user) {
     query = query.eq("submitted_by", user.id);
   }
@@ -119,6 +125,7 @@ export default async function SubmissionsPage({
     | "team"
     | "gap_type"
     | "frequency_impact"
+    | "is_blocking"
     | "submitted_by"
     | "submitter_email"
     | "created_at"
@@ -143,7 +150,7 @@ export default async function SubmissionsPage({
     .sort();
 
   const hasActiveFilters = Boolean(
-    q || team || component || gapType || scope === "mine",
+    q || team || component || gapType || blocking || scope === "mine",
   );
 
   return (
@@ -162,7 +169,7 @@ export default async function SubmissionsPage({
 
       <SubmissionsFilters
         options={{ teams: knownTeams, components: knownComponents }}
-        initial={{ q, team, component, gapType, scope }}
+        initial={{ q, team, component, gapType, blocking, scope }}
         signedInUserId={user?.id ?? null}
       />
 

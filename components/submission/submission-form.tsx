@@ -26,6 +26,10 @@ import {
 import { KNOWN_COMPONENTS } from "@/lib/constants/components";
 import { FRAMEWORKS, serializeFrameworks } from "@/lib/constants/frameworks";
 import { GAP_TYPES } from "@/lib/constants/gap-types";
+import {
+  BLOCKING_OPTIONS,
+  blockingValueToBoolean,
+} from "@/lib/constants/priority";
 import { TEAMS } from "@/lib/constants/teams";
 import { resizeImage } from "@/lib/image-resize";
 import {
@@ -166,6 +170,7 @@ export function SubmissionForm({
         proposed_support: input.proposed_support?.trim() ?? "",
         gap_type: serializeGapTypes(input.gap_type, input.gap_type_other ?? ""),
         frequency_impact: input.frequency_impact,
+        is_blocking: blockingValueToBoolean(input.is_blocking),
         figma_url: input.figma_url?.trim() || null,
         storybook_url: input.storybook_url?.trim() || null,
         open_questions: input.open_questions?.trim() || null,
@@ -386,6 +391,29 @@ export function SubmissionForm({
           <FieldError
             message={errors.frequency_impact?.message as string | undefined}
           />
+        </FieldRow>
+
+        <FieldRow>
+          <Label>Blocking a project?</Label>
+          <Controller
+            control={control}
+            name="is_blocking"
+            render={({ field }) => (
+              <SingleSelectDropdown
+                ariaLabel="Blocking a project?"
+                options={BLOCKING_OPTIONS}
+                placeholder="Select yes or no"
+                value={field.value}
+                onChange={field.onChange}
+                ariaInvalid={Boolean(errors.is_blocking)}
+              />
+            )}
+          />
+          <FieldHelp>
+            Select Yes if this gap is currently preventing a project, feature,
+            or release from moving forward.
+          </FieldHelp>
+          <FieldError message={errors.is_blocking?.message as string | undefined} />
         </FieldRow>
 
         <FieldRow>

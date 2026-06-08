@@ -1,12 +1,18 @@
 import { z } from "zod";
 import { FRAMEWORK_VALUES } from "@/lib/constants/frameworks";
 import { GAP_TYPE_VALUES } from "@/lib/constants/gap-types";
+import { BLOCKING_OPTIONS } from "@/lib/constants/priority";
 
 const FORM_FREQUENCY_IMPACT_VALUES = [
   "cross_product_need",
   "repeated_product_need",
   "one_time_use_case",
 ] as const;
+
+const BLOCKING_VALUES = BLOCKING_OPTIONS.map((option) => option.value) as [
+  "yes",
+  "no",
+];
 
 const requiredText = (label: string, min: number, max = 2000) =>
   z
@@ -50,6 +56,7 @@ export const submissionSchema = z.object({
   frequency_impact: z.enum(FORM_FREQUENCY_IMPACT_VALUES, {
     message: "Pick a frequency.",
   }),
+  is_blocking: z.enum(BLOCKING_VALUES).optional(),
   problem_description: requiredText("Problem description", 10),
   use_case: requiredText("Use case", 5),
   proposed_support: optionalText("Proposed support needed"),
@@ -57,6 +64,14 @@ export const submissionSchema = z.object({
   storybook_url: optionalUrl.default(""),
   open_questions: optionalText("Open questions"),
 }).superRefine((value, ctx) => {
+  if (!value.is_blocking) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["is_blocking"],
+      message: "Select whether this gap is blocking a project.",
+    });
+  }
+
   if (value.gap_type.includes("other") && value.gap_type_other.trim() === "") {
     ctx.addIssue({
       code: "custom",

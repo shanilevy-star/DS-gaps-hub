@@ -27,6 +27,7 @@ type SubmissionLite = Pick<
   | "team"
   | "gap_type"
   | "frequency_impact"
+  | "is_blocking"
   | "submitter_email"
   | "created_at"
 >;
@@ -54,7 +55,7 @@ export default async function DashboardPage() {
     supabase
       .from("submissions")
       .select(
-        "id, title, component_name, team, gap_type, frequency_impact, submitter_email, created_at",
+        "id, title, component_name, team, gap_type, frequency_impact, is_blocking, submitter_email, created_at",
       )
       .order("created_at", { ascending: false })
       .limit(500),
@@ -125,6 +126,17 @@ export default async function DashboardPage() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Total submissions" value={stats.total} />
           <StatCard
+            label="Blocking gaps"
+            value={stats.blockingCount}
+            hint={
+              stats.blockingCount === 0
+                ? "No blockers reported"
+                : stats.blockingCount === 1
+                  ? "1 delivery blocker"
+                  : `${stats.blockingCount} delivery blockers`
+            }
+          />
+          <StatCard
             label="New in last 7 days"
             value={stats.newInLastWeek}
             hint={
@@ -139,11 +151,6 @@ export default async function DashboardPage() {
             label="Distinct components"
             value={stats.uniqueComponents}
             hint="Across all submissions"
-          />
-          <StatCard
-            label="Teams contributing"
-            value={stats.uniqueTeams}
-            hint="Higher means broader interest"
           />
         </div>
       </section>
@@ -193,6 +200,7 @@ export default async function DashboardPage() {
           title: s.title,
           team: s.team,
           component_name: s.component_name,
+          is_blocking: s.is_blocking,
         }))}
         totalSubmissions={submissions.length}
       />

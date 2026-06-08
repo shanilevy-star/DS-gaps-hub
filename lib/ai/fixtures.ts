@@ -5,6 +5,7 @@
 
 import { frequencyImpactLabel } from "@/lib/constants/frequency-impact";
 import { gapTypeLabel } from "@/lib/constants/gap-types";
+import type { AiPriority } from "@/lib/constants/priority";
 import type { Submission } from "@/lib/types";
 import {
   classifySufficiency,
@@ -25,12 +26,16 @@ type SubmissionLite = Pick<
   | "team"
   | "gap_type"
   | "frequency_impact"
+  | "is_blocking"
   | "submitter_email"
   | "problem_description"
   | "created_at"
 >;
 
-const HIGH_IMPACT_FREQUENCY = new Set(["frequent", "blocking"]);
+const HIGH_IMPACT_FREQUENCY = new Set([
+  "cross_product_need",
+  "repeated_product_need",
+]);
 
 export function generateFixtureAnalysis(
   submissions: SubmissionLite[],
@@ -90,8 +95,9 @@ function buildGroup(items: SubmissionLite[]): AnalysisGroup {
   const crossTeam = teamsSet.size > 1;
 
   const topGapType = pickMajority(items, (i) => i.gap_type);
-  const highImpactCount = items.filter((i) =>
-    HIGH_IMPACT_FREQUENCY.has(i.frequency_impact),
+  const highImpactCount = items.filter(
+    (i) =>
+      i.is_blocking === true || HIGH_IMPACT_FREQUENCY.has(i.frequency_impact),
   ).length;
   const impactRatio = highImpactCount / items.length;
   const impact: ImpactSignal =
@@ -133,42 +139,77 @@ function buildGroup(items: SubmissionLite[]): AnalysisGroup {
 function buildRecommendations(
   groups: AnalysisGroup[],
 ): AnalysisRecommendation[] {
-  return groups.slice(0, 4).map((group, index) => {
-    const action: SuggestedAction =
-      group.gap_classification === "documentation_or_guidance"
-        ? "docs_update"
-        : group.gap_classification === "missing_variant_or_state"
-          ? group.title.toLowerCase().includes("state")
-            ? "new_state"
-            : "new_variant"
-          : group.gap_classification === "one_off_product_need"
-            ? "needs_discovery"
-            : "new_component";
+  return groups
+    .slice()
+    .sort(compareGroupsByPriority)
+    .slice(0, 4)
+    .map((group, index) => {
+      const action: SuggestedAction =
+        group.gap_classification === "documentation_or_guidance"
+          ? "docs_update"
+          : group.gap_classification === "missing_variant_or_state"
+            ? group.title.toLowerCase().includes("state")
+              ? "new_state"
+              : "new_variant"
+            : group.gap_classification === "one_off_product_need"
+              ? "needs_discovery"
+              : "new_component";
 
-    const confidence: Confidence =
-      group.submission_ids.length >= 4 && group.cross_team
-        ? "high"
-        : group.submission_ids.length >= 2
-          ? "medium"
-          : "low";
+      const confidence: Confidence =
+        group.submission_ids.length >= 4 && group.cross_team
+          ? "high"
+          : group.submission_ids.length >= 2
+            ? "medium"
+            : "low";
+      const priority = priorityForGroup(group);
 
-    return {
-      id: `rec-${index + 1}`,
-      title: titleForRecommendation(group, action),
-      rationale: `Backed by ${group.submission_ids.length} submission${group.submission_ids.length === 1 ? "" : "s"}${
-        group.cross_team ? " across multiple teams" : ""
-      }. ${
-        group.impact_signal === "high"
-          ? "Several submitters flagged this as frequent or blocking."
-          : group.impact_signal === "medium"
-            ? "Reported as a recurring need."
-            : "Likely a smaller-scope improvement."
-      }`,
-      suggested_action: action,
-      confidence,
-      related_group_ids: [group.id],
-    };
-  });
+      return {
+        id: `rec-${index + 1}`,
+        title: titleForRecommendation(group, action),
+        rationale: `Backed by ${group.submission_ids.length} submission${group.submission_ids.length === 1 ? "" : "s"}${
+          group.cross_team ? " across multiple teams" : ""
+        }. ${
+          priority === "critical"
+            ? "AI priority is critical because this combines high delivery impact with cross-team demand."
+            : priority === "high"
+              ? "AI priority is high because the pattern shows strong delivery impact."
+              : group.impact_signal === "medium"
+                ? "Reported as a recurring need."
+                : "Likely a smaller-scope improvement."
+        }`,
+        suggested_action: action,
+        priority,
+        confidence,
+        related_group_ids: [group.id],
+      };
+    });
+}
+
+function priorityForGroup(group: AnalysisGroup): AiPriority {
+  if (group.impact_signal === "high" && group.cross_team) {
+    return "critical";
+  }
+  if (group.impact_signal === "high" || group.submission_ids.length >= 4) {
+    return "high";
+  }
+  if (group.impact_signal === "medium" || group.submission_ids.length >= 2) {
+    return "medium";
+  }
+  return "low";
+}
+
+function compareGroupsByPriority(a: AnalysisGroup, b: AnalysisGroup) {
+  const priorityRank: Record<AiPriority, number> = {
+    critical: 4,
+    high: 3,
+    medium: 2,
+    low: 1,
+  };
+  const priorityDelta =
+    priorityRank[priorityForGroup(b)] - priorityRank[priorityForGroup(a)];
+  if (priorityDelta !== 0) return priorityDelta;
+  if (a.cross_team !== b.cross_team) return a.cross_team ? -1 : 1;
+  return b.submission_ids.length - a.submission_ids.length;
 }
 
 function titleForRecommendation(

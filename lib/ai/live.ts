@@ -16,6 +16,7 @@ type SubmissionLite = Pick<
   | "team"
   | "gap_type"
   | "frequency_impact"
+  | "is_blocking"
   | "problem_description"
   | "use_case"
   | "why_insufficient"
@@ -90,6 +91,7 @@ const RESPONSE_SCHEMA = {
           "title",
           "rationale",
           "suggested_action",
+          "priority",
           "confidence",
           "related_group_ids",
         ],
@@ -106,6 +108,10 @@ const RESPONSE_SCHEMA = {
               "docs_update",
               "needs_discovery",
             ],
+          },
+          priority: {
+            type: "string",
+            enum: ["low", "medium", "high", "critical"],
           },
           confidence: { type: "string", enum: ["low", "medium", "high"] },
           related_group_ids: {
@@ -159,6 +165,7 @@ export async function runLiveAnalysis(
     title: s.title,
     gap_type: s.gap_type,
     frequency_impact: s.frequency_impact,
+    is_blocking: s.is_blocking,
     problem_description: s.problem_description,
     use_case: s.use_case,
     why_insufficient: s.why_insufficient,

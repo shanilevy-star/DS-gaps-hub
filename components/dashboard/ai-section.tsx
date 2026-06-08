@@ -10,11 +10,18 @@ import {
 } from "@/components/dashboard/recommendations-list";
 import { Button } from "@/components/ui/button";
 import { formatRelativeShort } from "@/lib/format";
-import type { AnalysisRun } from "@/lib/ai/types";
+import type { AnalysisRecommendation, AnalysisRun } from "@/lib/ai/types";
+import type { AiPriority } from "@/lib/constants/priority";
 import type { Submission } from "@/lib/types";
 
 const TASK_STORAGE_KEY = "ds-gap-insights:recommendation-tasks";
 const RECOMMENDATION_PREVIEW_LIMIT = 4;
+const PRIORITY_RANK: Record<AiPriority, number> = {
+  critical: 4,
+  high: 3,
+  medium: 2,
+  low: 1,
+};
 
 export function AiSection({
   initialRun,
@@ -24,7 +31,7 @@ export function AiSection({
   initialRun: AnalysisRun | null;
   submissionsForGrouping: Pick<
     Submission,
-    "id" | "title" | "team" | "component_name"
+    "id" | "title" | "team" | "component_name" | "is_blocking"
   >[];
   totalSubmissions: number;
 }) {
@@ -97,9 +104,9 @@ export function AiSection({
 
   const activeRecommendations = useMemo(
     () =>
-      run?.payload.recommendations.filter(
-        (rec) => taskStatuses[rec.id] !== "Dismissed",
-      ) ?? [],
+      (run?.payload.recommendations
+        .filter((rec) => taskStatuses[rec.id] !== "Dismissed")
+        .sort(compareRecommendationsByPriority) ?? []),
     [run, taskStatuses],
   );
 
@@ -218,4 +225,14 @@ export function AiSection({
       )}
     </section>
   );
+}
+
+function compareRecommendationsByPriority(
+  a: AnalysisRecommendation,
+  b: AnalysisRecommendation,
+) {
+  const priorityDelta =
+    PRIORITY_RANK[b.priority ?? "medium"] - PRIORITY_RANK[a.priority ?? "medium"];
+  if (priorityDelta !== 0) return priorityDelta;
+  return b.related_group_ids.length - a.related_group_ids.length;
 }

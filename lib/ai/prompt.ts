@@ -8,6 +8,7 @@ Goals, in priority order:
 1. Identify true design system component gaps that are shared across multiple teams or recur within the same product.
 2. Separate one-off product needs from cross-product DS gaps from documentation/guidance issues.
 3. Surface a small number of high-confidence recommendations the DS team can act on this quarter.
+4. Assign an AI priority to each recommendation based on submitted signals. Use Critical for work backed by blocking delivery, cross-product impact, repeated similar requests, and multi-team demand.
 
 Hard constraints:
 - NEVER invent component names that do not appear in the submissions.
@@ -25,7 +26,7 @@ export function buildUserPrompt(submissions: SubmissionPromptInput[]): string {
   const blocks = submissions.map((s) => formatSubmissionBlock(s));
   return [
     `There are ${submissions.length} component gap submissions to analyze.`,
-    "Each submission has an ID, team, component name, gap type, and rich text fields explaining the problem, use case, why the existing component is insufficient, and what support is needed.",
+    "Each submission has an ID, team, component name, gap type, frequency / impact, whether it is blocking delivery, and rich text fields explaining the problem, use case, why the existing component is insufficient, and what support is needed.",
     "",
     "Submissions:",
     "",
@@ -40,6 +41,7 @@ export type SubmissionPromptInput = {
   title: string;
   gap_type: string;
   frequency_impact: string;
+  is_blocking: boolean | null;
   problem_description: string;
   use_case: string;
   why_insufficient: string;
@@ -54,6 +56,7 @@ function formatSubmissionBlock(s: SubmissionPromptInput): string {
     `Component: ${s.component_name}`,
     `Gap type: ${s.gap_type}`,
     `Frequency / impact: ${s.frequency_impact}`,
+    `Blocking delivery: ${s.is_blocking === true ? "Yes" : s.is_blocking === false ? "No" : "Not specified"}`,
     `Problem: ${s.problem_description}`,
     `Use case: ${s.use_case}`,
     `Why current is insufficient: ${s.why_insufficient}`,

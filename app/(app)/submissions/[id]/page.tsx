@@ -9,6 +9,7 @@ import { ImageGallery } from "@/components/submissions/image-gallery";
 import { frameworkLabel } from "@/lib/constants/frameworks";
 import { frequencyImpactLabel } from "@/lib/constants/frequency-impact";
 import { gapTypeLabel } from "@/lib/constants/gap-types";
+import { blockingLabel } from "@/lib/constants/priority";
 import { formatAbsolute, formatRelativeShort } from "@/lib/format";
 import { signImageUrls } from "@/lib/storage";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -81,6 +82,9 @@ export default async function SubmissionDetailPage({
             {frequencyImpactLabel(submission.frequency_impact)}
           </Badge>
           <Badge variant="outline">{frameworkLabel(submission.framework)}</Badge>
+          {submission.is_blocking === true ? (
+            <Badge variant="destructive">Blocking</Badge>
+          ) : null}
         </div>
         <h1 className="text-2xl font-semibold tracking-tight">
           {submission.title}
@@ -90,6 +94,10 @@ export default async function SubmissionDetailPage({
           <DetailMetaItem
             label="Framework"
             value={frameworkLabel(submission.framework)}
+          />
+          <DetailMetaItem
+            label="Blocking"
+            value={blockingLabel(submission.is_blocking)}
           />
           <DetailMetaItem label="Team" value={submission.team} />
           <DetailMetaItem

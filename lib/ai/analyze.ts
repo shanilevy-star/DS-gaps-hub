@@ -13,6 +13,7 @@ type SubmissionLite = Pick<
   | "team"
   | "gap_type"
   | "frequency_impact"
+  | "is_blocking"
   | "submitter_email"
   | "problem_description"
   | "use_case"

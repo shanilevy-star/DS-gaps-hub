@@ -1,5 +1,6 @@
 import { parseFrameworks } from "@/lib/constants/frameworks";
 import { GAP_TYPE_VALUES, type GapTypeValue } from "@/lib/constants/gap-types";
+import { blockingFormValue } from "@/lib/constants/priority";
 import type { Submission } from "@/lib/types";
 import type { SubmissionInput } from "@/lib/validators/submission";
 
@@ -11,6 +12,7 @@ export const defaultSubmissionValues: SubmissionInput = {
   gap_type: [],
   gap_type_other: "",
   frequency_impact: undefined as unknown as SubmissionInput["frequency_impact"],
+  is_blocking: undefined,
   problem_description: "",
   use_case: "",
   proposed_support: "",
@@ -71,6 +73,7 @@ export function submissionToFormValues(
     | "framework"
     | "gap_type"
     | "frequency_impact"
+    | "is_blocking"
     | "problem_description"
     | "use_case"
     | "proposed_support"
@@ -88,6 +91,7 @@ export function submissionToFormValues(
     framework: parseFrameworks(submission.framework),
     frequency_impact:
       submission.frequency_impact as SubmissionInput["frequency_impact"],
+    is_blocking: blockingFormValue(submission.is_blocking),
     problem_description: submission.problem_description,
     use_case: submission.use_case,
     proposed_support: submission.proposed_support,

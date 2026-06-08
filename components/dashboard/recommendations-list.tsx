@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Plus, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { aiPriorityLabel, type AiPriority } from "@/lib/constants/priority";
+import { cn } from "@/lib/utils";
 import type {
   AnalysisGroup,
   AnalysisRecommendation,
@@ -30,6 +32,16 @@ const IMPACT_LABEL: Record<ImpactSignal, string> = {
   low: "Low impact",
   medium: "Medium impact",
   high: "High impact",
+};
+
+const PRIORITY_BADGE_VARIANT: Record<
+  AiPriority,
+  "destructive" | "default" | "secondary" | "outline"
+> = {
+  critical: "destructive",
+  high: "default",
+  medium: "secondary",
+  low: "outline",
 };
 
 export type RecommendationTaskStatus =
@@ -61,7 +73,7 @@ export function RecommendationsList({
   groupsById: Map<string, AnalysisGroup>;
   submissionsById: Map<
     string,
-    Pick<Submission, "id" | "title" | "team" | "component_name">
+    Pick<Submission, "id" | "title" | "team" | "component_name" | "is_blocking">
   >;
   onAddToTask: (id: string) => void;
   onTaskStatusChange: (id: string, status: RecommendationTaskStatus) => void;
@@ -84,7 +96,11 @@ export function RecommendationsList({
         return (
           <li
             key={rec.id}
-            className="rounded-lg border border-border bg-card p-5"
+            className={cn(
+              "rounded-lg border border-border bg-card p-5",
+              rec.priority === "critical" && "border-destructive/40 bg-destructive/5",
+              rec.priority === "high" && "border-foreground/20",
+            )}
           >
             <div className="flex items-start gap-4">
               <span className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-medium tabular-nums">
@@ -98,6 +114,12 @@ export function RecommendationsList({
                     </h4>
                     <Badge variant="outline" className="text-[10px] uppercase">
                       {ACTION_LABEL[rec.suggested_action]}
+                    </Badge>
+                    <Badge
+                      variant={PRIORITY_BADGE_VARIANT[rec.priority ?? "medium"]}
+                      className="text-[10px] uppercase"
+                    >
+                      AI priority: {aiPriorityLabel(rec.priority ?? "medium")}
                     </Badge>
                   </div>
                   <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
@@ -181,7 +203,7 @@ function SupportingPattern({
   group: AnalysisGroup;
   submissionsById: Map<
     string,
-    Pick<Submission, "id" | "title" | "team" | "component_name">
+    Pick<Submission, "id" | "title" | "team" | "component_name" | "is_blocking">
   >;
 }) {
   const hydratedSubmissions = group.submission_ids
@@ -191,7 +213,7 @@ function SupportingPattern({
         submission,
       ): submission is Pick<
         Submission,
-        "id" | "title" | "team" | "component_name"
+        "id" | "title" | "team" | "component_name" | "is_blocking"
       > => Boolean(submission),
     );
 

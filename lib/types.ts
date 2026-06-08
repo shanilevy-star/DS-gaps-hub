@@ -14,6 +14,7 @@ export type Submission = {
   team: string;
   component_name: string;
   framework: string | null;
+  is_blocking: boolean | null;
   title: string;
   problem_description: string;
   use_case: string;

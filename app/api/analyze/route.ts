@@ -25,7 +25,7 @@ export async function POST() {
   const { data: submissions, error: fetchError } = await supabase
     .from("submissions")
     .select(
-      "id, title, component_name, team, gap_type, frequency_impact, submitter_email, problem_description, use_case, why_insufficient, proposed_support, created_at",
+      "id, title, component_name, team, gap_type, frequency_impact, is_blocking, submitter_email, problem_description, use_case, why_insufficient, proposed_support, created_at",
     )
     .order("created_at", { ascending: false })
     .limit(500);
@@ -43,6 +43,7 @@ export async function POST() {
       | "team"
       | "gap_type"
       | "frequency_impact"
+      | "is_blocking"
       | "submitter_email"
       | "problem_description"
       | "use_case"

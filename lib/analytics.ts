@@ -9,6 +9,7 @@ type SubmissionLite = Pick<
   | "team"
   | "gap_type"
   | "frequency_impact"
+  | "is_blocking"
   | "submitter_email"
   | "created_at"
 >;
@@ -20,6 +21,7 @@ export type DashboardStats = {
   newInLastWeek: number;
   uniqueComponents: number;
   uniqueTeams: number;
+  blockingCount: number;
   mostRequestedComponents: CountEntry[];
   mostCommonGapTypes: CountEntry[];
   teamDistribution: CountEntry[];
@@ -36,6 +38,7 @@ export function computeDashboardStats(
   const newInLastWeek = submissions.filter(
     (s) => new Date(s.created_at).getTime() >= cutoff,
   ).length;
+  const blockingCount = submissions.filter((s) => s.is_blocking === true).length;
 
   const componentCounts = countBy(submissions, (s) => s.component_name);
   const gapTypeCounts = countBy(submissions, (s) => s.gap_type);
@@ -46,6 +49,7 @@ export function computeDashboardStats(
     newInLastWeek,
     uniqueComponents: componentCounts.length,
     uniqueTeams: teamCounts.length,
+    blockingCount,
     mostRequestedComponents: toEntries(componentCounts, total).slice(0, 5),
     mostCommonGapTypes: toEntries(
       gapTypeCounts.map(([name, count]) => [gapTypeLabel(name), count]),
