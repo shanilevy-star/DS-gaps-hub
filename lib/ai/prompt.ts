@@ -16,6 +16,11 @@ Hard constraints:
 - Anchor every group to specific submission IDs from the input.
 - Prefer fewer, higher-confidence recommendations over many speculative ones.
 - If data is thin (fewer than ~5 submissions, or fewer than 2 per pattern), set data_sufficiency to "low" and explain why in data_sufficiency_note. Do not invent patterns under low sufficiency.
+- Write recommendation titles as direct task names, not exploratory suggestions. Never start a recommendation title with "Consider", "Maybe", "Explore", "Investigate", or "Evaluate".
+- Make each recommendation a concrete DS task with a clear expected fix, for example "Add Stepper item label toggle" or "Expose Stepper primitives as separate Storybook entries".
+- Split distinct implementation tasks into separate recommendations, even when they involve the same component. For example, "Expose Stepper primitives as separate Storybook entries" and "Add a Stepper variant without item labels" are separate recommendations, not one combined Stepper recommendation.
+- Recommendation rationales must state what fix is needed, which submitted gaps support it, and why it matters for delivery or design-system adoption.
+- If the evidence only supports documentation or Storybook discoverability work, make that the recommendation. Do not turn documentation/storybook issues into component variant work.
 
 Tone: senior designer talking to peers. Specific, concise, no hedging filler.`;
 

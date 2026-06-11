@@ -9,14 +9,16 @@ import { SubmissionsTable } from "@/components/submissions/submissions-table";
 import type { AnalysisOutput, AnalysisRun } from "@/lib/ai/types";
 import { computeDashboardStats } from "@/lib/analytics";
 import { GAP_TYPES } from "@/lib/constants/gap-types";
+import { filterRealSubmissions } from "@/lib/submissions";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
+import type { TaskStatus } from "@/lib/tasks";
 import type { Submission } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Gap prioritization dashboard | DS Gap Hub",
+  title: "Insights | DS Gap Hub",
 };
 
 type SubmissionLite = Pick<
@@ -38,7 +40,7 @@ export default async function DashboardPage() {
       <div className="space-y-6">
         <header className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">
-            Gap prioritization dashboard
+            Insights
           </h1>
           <p className="max-w-prose text-sm text-muted-foreground">
             Track submitted DS gaps, repeated patterns, and AI-recommended
@@ -51,6 +53,13 @@ export default async function DashboardPage() {
   }
 
   const supabase = await createClient();
+  const useFixtureAnalysis =
+    process.env.USE_AI_FIXTURES?.toLowerCase() === "true";
+  const latestRunQuery = supabase
+    .from("analysis_runs")
+    .select("id, created_at, input_count, payload, mode")
+    .order("created_at", { ascending: false })
+    .limit(1);
   const [submissionsResult, latestRunResult] = await Promise.all([
     supabase
       .from("submissions")
@@ -59,12 +68,10 @@ export default async function DashboardPage() {
       )
       .order("created_at", { ascending: false })
       .limit(500),
-    supabase
-      .from("analysis_runs")
-      .select("id, created_at, input_count, payload, mode")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+    (useFixtureAnalysis
+      ? latestRunQuery
+      : latestRunQuery.eq("mode", "live")
+    ).maybeSingle(),
   ]);
 
   if (submissionsResult.error) {
@@ -72,14 +79,16 @@ export default async function DashboardPage() {
       <div className="space-y-6">
         <DashboardHeader />
         <EmptyState
-          title="Couldn't load the dashboard"
+          title="Couldn't load insights"
           description={submissionsResult.error.message}
         />
       </div>
     );
   }
 
-  const submissions = (submissionsResult.data ?? []) as SubmissionLite[];
+  const submissions = filterRealSubmissions(
+    (submissionsResult.data ?? []) as SubmissionLite[],
+  );
   const latestRun: AnalysisRun | null = latestRunResult.data
     ? {
         id: latestRunResult.data.id,
@@ -90,6 +99,18 @@ export default async function DashboardPage() {
           latestRunResult.data.payload as unknown as AnalysisOutput,
       }
     : null;
+  let initialTaskStatuses: Record<string, TaskStatus> = {};
+
+  if (latestRun) {
+    const { data: tasks } = await supabase
+      .from("tasks")
+      .select("source_recommendation_id, status")
+      .eq("source_analysis_run_id", latestRun.id);
+
+    initialTaskStatuses = Object.fromEntries(
+      (tasks ?? []).map((task) => [task.source_recommendation_id, task.status]),
+    );
+  }
 
   if (submissions.length === 0) {
     return (
@@ -97,7 +118,7 @@ export default async function DashboardPage() {
         <DashboardHeader />
         <EmptyState
           title="No submissions yet"
-          description="Once designers start submitting gaps, this dashboard will summarize them and surface patterns."
+          description="Once designers start submitting gaps, Insights will summarize them and surface patterns."
           action={
             <Button asChild size="sm">
               <Link href="/submit">Submit the first gap</Link>
@@ -169,6 +190,7 @@ export default async function DashboardPage() {
           <CountBars
             title="Most requested components"
             entries={stats.mostRequestedComponents}
+            emptyLabel="No component requests yet."
             linkBuilder={(entry) =>
               `/submissions?component=${encodeURIComponent(entry.name)}`
             }
@@ -176,6 +198,7 @@ export default async function DashboardPage() {
           <CountBars
             title="Most common gap types"
             entries={stats.mostCommonGapTypes}
+            emptyLabel="No gap types submitted yet."
             linkBuilder={(entry) => {
               const value = gapTypeNameToValue.get(entry.name);
               return value
@@ -186,6 +209,7 @@ export default async function DashboardPage() {
           <CountBars
             title="Submissions by team"
             entries={stats.teamDistribution}
+            emptyLabel="No team data from submitted gaps yet."
             linkBuilder={(entry) =>
               `/submissions?team=${encodeURIComponent(entry.name)}`
             }
@@ -195,6 +219,7 @@ export default async function DashboardPage() {
 
       <AiSection
         initialRun={latestRun}
+        initialTaskStatuses={initialTaskStatuses}
         submissionsForGrouping={submissions.map((s) => ({
           id: s.id,
           title: s.title,
@@ -227,7 +252,7 @@ function DashboardHeader() {
   return (
     <header className="space-y-2">
       <h1 className="text-2xl font-semibold tracking-tight">
-        Gap prioritization dashboard
+        Insights
       </h1>
       <p className="max-w-prose text-sm text-muted-foreground">
         Track submitted DS gaps, repeated patterns, and AI-recommended fixes.

@@ -1,266 +1,202 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { Plus, X } from "lucide-react";
+import { CheckCircle2, ChevronDown, Plus, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { aiPriorityLabel, type AiPriority } from "@/lib/constants/priority";
+import { taskStatusLabel, type TaskStatus } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
 import type {
   AnalysisGroup,
   AnalysisRecommendation,
-  GapClassification,
-  ImpactSignal,
-  SuggestedAction,
 } from "@/lib/ai/types";
 import type { Submission } from "@/lib/types";
 
-const ACTION_LABEL: Record<SuggestedAction, string> = {
-  new_variant: "New variant",
-  new_state: "New state",
-  new_component: "New component",
-  docs_update: "Docs / guidance",
-  needs_discovery: "Needs discovery",
+type SupportingSubmission = Pick<
+  Submission,
+  "id" | "title" | "team" | "component_name" | "is_blocking"
+>;
+
+const PRIORITY_BADGE_CLASS: Record<AiPriority, string> = {
+  critical:
+    "border-red-200 bg-red-50 text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300",
+  high:
+    "border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-900/60 dark:bg-orange-950/30 dark:text-orange-300",
+  medium:
+    "border-yellow-200 bg-yellow-50 text-yellow-800 dark:border-yellow-900/60 dark:bg-yellow-950/30 dark:text-yellow-300",
+  low: "border-border bg-muted text-muted-foreground",
 };
-
-const CLASSIFICATION_LABEL: Record<GapClassification, string> = {
-  true_component_gap: "Component gap",
-  missing_variant_or_state: "Missing variant or state",
-  documentation_or_guidance: "Docs / guidance",
-  one_off_product_need: "One-off need",
-};
-
-const IMPACT_LABEL: Record<ImpactSignal, string> = {
-  low: "Low impact",
-  medium: "Medium impact",
-  high: "High impact",
-};
-
-const PRIORITY_BADGE_VARIANT: Record<
-  AiPriority,
-  "destructive" | "default" | "secondary" | "outline"
-> = {
-  critical: "destructive",
-  high: "default",
-  medium: "secondary",
-  low: "outline",
-};
-
-export type RecommendationTaskStatus =
-  | "Open"
-  | "In review"
-  | "Planned"
-  | "Done"
-  | "Dismissed";
-
-const TASK_STATUSES: RecommendationTaskStatus[] = [
-  "Open",
-  "In review",
-  "Planned",
-  "Done",
-  "Dismissed",
-];
 
 export function RecommendationsList({
   recommendations,
   taskStatuses,
+  addingTaskId,
   groupsById,
   submissionsById,
   onAddToTask,
-  onTaskStatusChange,
   onDismiss,
 }: {
   recommendations: AnalysisRecommendation[];
-  taskStatuses: Record<string, RecommendationTaskStatus>;
+  taskStatuses: Record<string, TaskStatus>;
+  addingTaskId?: string | null;
   groupsById: Map<string, AnalysisGroup>;
   submissionsById: Map<
     string,
     Pick<Submission, "id" | "title" | "team" | "component_name" | "is_blocking">
   >;
-  onAddToTask: (id: string) => void;
-  onTaskStatusChange: (id: string, status: RecommendationTaskStatus) => void;
+  onAddToTask: (recommendation: AnalysisRecommendation) => void;
   onDismiss: (id: string) => void;
 }) {
   if (recommendations.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        No active recommendations. Dismissed items are hidden from this list.
+        No recommended fixes to show from the current analysis. Dismissed items
+        are hidden from this list.
       </p>
     );
   }
   return (
-    <ol className="space-y-3">
-      {recommendations.map((rec, index) => {
+    <ul className="space-y-3">
+      {recommendations.map((rec) => {
         const relatedGroups = rec.related_group_ids
           .map((id) => groupsById.get(id))
           .filter((group): group is AnalysisGroup => Boolean(group));
+        const supportingSubmissions = getSupportingSubmissions(
+          relatedGroups,
+          submissionsById,
+        );
+        const priority = rec.priority ?? "medium";
 
         return (
           <li
             key={rec.id}
-            className={cn(
-              "rounded-lg border border-border bg-card p-5",
-              rec.priority === "critical" && "border-destructive/40 bg-destructive/5",
-              rec.priority === "high" && "border-foreground/20",
-            )}
+            className="rounded-lg border border-border bg-card p-5 shadow-md shadow-foreground/5"
           >
-            <div className="flex items-start gap-4">
-              <span className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-medium tabular-nums">
-                {index + 1}
-              </span>
-              <div className="min-w-0 flex-1 space-y-4">
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h4 className="text-base font-semibold leading-snug">
-                      {rec.title}
-                    </h4>
-                    <Badge variant="outline" className="text-[10px] uppercase">
-                      {ACTION_LABEL[rec.suggested_action]}
-                    </Badge>
-                    <Badge
-                      variant={PRIORITY_BADGE_VARIANT[rec.priority ?? "medium"]}
-                      className="text-[10px] uppercase"
-                    >
-                      AI priority: {aiPriorityLabel(rec.priority ?? "medium")}
-                    </Badge>
-                  </div>
-                  <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                    {rec.rationale}
-                  </p>
+            <div className="min-w-0 space-y-4">
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h4 className="text-base font-semibold leading-snug">
+                    {rec.title}
+                  </h4>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-[10px] uppercase",
+                      PRIORITY_BADGE_CLASS[priority],
+                    )}
+                  >
+                    AI priority: {aiPriorityLabel(priority)}
+                  </Badge>
                 </div>
+                <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                  {rec.rationale}
+                </p>
+              </div>
 
-                {relatedGroups.length > 0 ? (
-                  <div className="space-y-2.5">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Supporting patterns
-                    </p>
-                    <div className="space-y-2">
-                      {relatedGroups.map((group) => (
-                        <SupportingPattern
-                          key={group.id}
-                          group={group}
-                          submissionsById={submissionsById}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
+              {supportingSubmissions.length > 0 ? (
+                <SupportingSubmittedGaps submissions={supportingSubmissions} />
+              ) : null}
 
-                <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                  {taskStatuses[rec.id] &&
-                  taskStatuses[rec.id] !== "Dismissed" ? (
-                    <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                      Task
-                      <select
-                        value={taskStatuses[rec.id]}
-                        onChange={(event) =>
-                          onTaskStatusChange(
-                            rec.id,
-                            event.target.value as RecommendationTaskStatus,
-                          )
-                        }
-                        className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground"
-                      >
-                        {TASK_STATUSES.map((status) => (
-                          <option key={status} value={status}>
-                            {status}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  ) : (
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => onAddToTask(rec.id)}
-                    >
-                      <Plus className="mr-1 size-3.5" aria-hidden />
-                      Add to task
-                    </Button>
-                  )}
+              <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                {taskStatuses[rec.id] ? (
+                  <Badge
+                    variant="secondary"
+                    className="inline-flex h-8 items-center gap-1.5 px-3 text-xs"
+                  >
+                    <CheckCircle2 className="size-3.5" aria-hidden />
+                    In tasks: {taskStatusLabel(taskStatuses[rec.id])}
+                  </Badge>
+                ) : (
                   <Button
                     type="button"
                     size="sm"
-                    variant="ghost"
-                    className="text-muted-foreground hover:text-destructive"
-                    onClick={() => onDismiss(rec.id)}
+                    disabled={addingTaskId === rec.id}
+                    onClick={() => onAddToTask(rec)}
                   >
-                    <X className="mr-1 size-3.5" aria-hidden />
-                    Dismiss
+                    <Plus className="mr-1 size-3.5" aria-hidden />
+                    {addingTaskId === rec.id ? "Adding..." : "Add to tasks"}
                   </Button>
-                </div>
+                )}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={() => onDismiss(rec.id)}
+                >
+                  <X className="mr-1 size-3.5" aria-hidden />
+                  Dismiss
+                </Button>
               </div>
             </div>
           </li>
         );
       })}
-    </ol>
+    </ul>
   );
 }
 
-function SupportingPattern({
-  group,
-  submissionsById,
+function getSupportingSubmissions(
+  groups: AnalysisGroup[],
+  submissionsById: Map<string, SupportingSubmission>,
+): SupportingSubmission[] {
+  const seenSubmissionIds = new Set<string>();
+  const submissions: SupportingSubmission[] = [];
+
+  for (const group of groups) {
+    for (const id of group.submission_ids) {
+      if (seenSubmissionIds.has(id)) continue;
+      const submission = submissionsById.get(id);
+      if (!submission) continue;
+      seenSubmissionIds.add(id);
+      submissions.push(submission);
+    }
+  }
+
+  return submissions;
+}
+
+function SupportingSubmittedGaps({
+  submissions,
 }: {
-  group: AnalysisGroup;
-  submissionsById: Map<
-    string,
-    Pick<Submission, "id" | "title" | "team" | "component_name" | "is_blocking">
-  >;
+  submissions: SupportingSubmission[];
 }) {
-  const hydratedSubmissions = group.submission_ids
-    .map((id) => submissionsById.get(id))
-    .filter(
-      (
-        submission,
-      ): submission is Pick<
-        Submission,
-        "id" | "title" | "team" | "component_name" | "is_blocking"
-      > => Boolean(submission),
-    );
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="rounded-md border border-border bg-muted/30 p-3.5">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0 space-y-1.5">
-          <h5 className="text-xs font-semibold leading-snug">{group.title}</h5>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <Badge variant="secondary" className="text-[10px]">
-              {CLASSIFICATION_LABEL[group.gap_classification]}
-            </Badge>
-            <Badge variant="outline" className="text-[10px]">
-              {IMPACT_LABEL[group.impact_signal]}
-            </Badge>
-          </div>
-        </div>
-        <p className="shrink-0 text-xs text-muted-foreground">
-          {group.submission_ids.length} submission
-          {group.submission_ids.length === 1 ? "" : "s"}
-        </p>
-      </div>
-      <p className="mt-2.5 text-xs leading-relaxed text-muted-foreground">
-        {group.rationale}
-      </p>
-      {hydratedSubmissions.length > 0 ? (
-        <ul className="mt-2.5 space-y-1">
-          {hydratedSubmissions.slice(0, 4).map((submission) => (
-            <li key={submission.id}>
+    <div className="rounded-md border border-border bg-muted/20 p-3">
+      <button
+        type="button"
+        className="flex w-full items-center justify-between gap-3 text-left text-xs font-semibold text-muted-foreground hover:text-foreground"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((current) => !current)}
+      >
+        <span>Supporting submitted gaps ({submissions.length})</span>
+        <ChevronDown
+          className={cn(
+            "size-3.5 shrink-0 transition-transform",
+            isOpen && "rotate-180",
+          )}
+          aria-hidden
+        />
+      </button>
+      {isOpen ? (
+        <ul className="mt-2.5 list-disc space-y-1 pl-5">
+          {submissions.map((submission) => (
+            <li key={submission.id} className="text-xs text-muted-foreground">
               <Link
                 href={`/submissions/${submission.id}?from=dashboard-ai`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block truncate text-xs text-muted-foreground hover:text-foreground hover:underline"
+                className="hover:text-foreground hover:underline"
               >
-                &middot; {submission.title}{" "}
+                {submission.title}{" "}
                 <span className="text-muted-foreground/70">
                   ({submission.team})
                 </span>
               </Link>
             </li>
           ))}
-          {hydratedSubmissions.length > 4 ? (
-            <li className="text-xs text-muted-foreground">
-              + {hydratedSubmissions.length - 4} more
-            </li>
-          ) : null}
         </ul>
       ) : null}
     </div>

@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 const LINKS = [
   { href: "/submit", label: "Submit a gap" },
   { href: "/submissions", label: "Submissions" },
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard", label: "Insights" },
+  { href: "/tasks", label: "Tasks" },
 ] as const;
 
 export function AppNav({ rightSlot }: { rightSlot?: React.ReactNode }) {

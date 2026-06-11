@@ -1,20 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import {
-  RecommendationsList,
-  type RecommendationTaskStatus,
-} from "@/components/dashboard/recommendations-list";
+import { RecommendationsList } from "@/components/dashboard/recommendations-list";
 import { Button } from "@/components/ui/button";
 import { formatRelativeShort } from "@/lib/format";
 import type { AnalysisRecommendation, AnalysisRun } from "@/lib/ai/types";
 import type { AiPriority } from "@/lib/constants/priority";
+import type { DesignTask, TaskStatus } from "@/lib/tasks";
 import type { Submission } from "@/lib/types";
 
-const TASK_STORAGE_KEY = "ds-gap-insights:recommendation-tasks";
 const RECOMMENDATION_PREVIEW_LIMIT = 4;
 const PRIORITY_RANK: Record<AiPriority, number> = {
   critical: 4,
@@ -25,10 +23,12 @@ const PRIORITY_RANK: Record<AiPriority, number> = {
 
 export function AiSection({
   initialRun,
+  initialTaskStatuses,
   submissionsForGrouping,
   totalSubmissions,
 }: {
   initialRun: AnalysisRun | null;
+  initialTaskStatuses: Record<string, TaskStatus>;
   submissionsForGrouping: Pick<
     Submission,
     "id" | "title" | "team" | "component_name" | "is_blocking"
@@ -39,35 +39,13 @@ export function AiSection({
   const [run, setRun] = useState<AnalysisRun | null>(initialRun);
   const [submitting, setSubmitting] = useState(false);
   const [showAllRecommendations, setShowAllRecommendations] = useState(false);
-  const [taskStatuses, setTaskStatuses] = useState<
-    Record<string, RecommendationTaskStatus>
+  const [localTaskStatuses, setLocalTaskStatuses] = useState<
+    Record<string, TaskStatus>
   >({});
-  const [taskStateLoaded, setTaskStateLoaded] = useState(false);
-
-  useEffect(() => {
-    const handle = window.setTimeout(() => {
-      try {
-        const stored = window.localStorage.getItem(TASK_STORAGE_KEY);
-        if (stored) {
-          setTaskStatuses(JSON.parse(stored));
-        }
-      } catch {
-        // Local task state is best-effort only.
-      } finally {
-        setTaskStateLoaded(true);
-      }
-    }, 0);
-    return () => window.clearTimeout(handle);
-  }, []);
-
-  useEffect(() => {
-    if (!taskStateLoaded) return;
-    try {
-      window.localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(taskStatuses));
-    } catch {
-      // Ignore storage failures; recommendations still work in-session.
-    }
-  }, [taskStateLoaded, taskStatuses]);
+  const [addingTaskId, setAddingTaskId] = useState<string | null>(null);
+  const [dismissedRecommendationIds, setDismissedRecommendationIds] = useState<
+    string[]
+  >([]);
 
   async function handleRun() {
     setSubmitting(true);
@@ -101,13 +79,17 @@ export function AiSection({
     run &&
     totalSubmissions > 0 &&
     run.input_count !== totalSubmissions;
+  const taskStatuses = useMemo(
+    () => ({ ...initialTaskStatuses, ...localTaskStatuses }),
+    [initialTaskStatuses, localTaskStatuses],
+  );
 
   const activeRecommendations = useMemo(
     () =>
       (run?.payload.recommendations
-        .filter((rec) => taskStatuses[rec.id] !== "Dismissed")
+        .filter((rec) => !dismissedRecommendationIds.includes(rec.id))
         .sort(compareRecommendationsByPriority) ?? []),
-    [run, taskStatuses],
+    [dismissedRecommendationIds, run],
   );
 
   const visibleRecommendations = showAllRecommendations
@@ -118,11 +100,44 @@ export function AiSection({
     activeRecommendations.length - RECOMMENDATION_PREVIEW_LIMIT,
   );
 
-  function updateTaskStatus(
-    id: string,
-    status: RecommendationTaskStatus,
-  ) {
-    setTaskStatuses((current) => ({ ...current, [id]: status }));
+  async function handleAddToTask(recommendation: AnalysisRecommendation) {
+    if (!run || taskStatuses[recommendation.id] || addingTaskId) return;
+
+    setAddingTaskId(recommendation.id);
+    try {
+      const response = await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sourceAnalysisRunId: run.id,
+          sourceRecommendationId: recommendation.id,
+          title: recommendation.title,
+          rationale: recommendation.rationale,
+          priority: recommendation.priority ?? "medium",
+          relatedGroupIds: recommendation.related_group_ids,
+        }),
+      });
+      const body = (await response.json()) as {
+        task?: Pick<DesignTask, "status">;
+        duplicate?: boolean;
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(body.error ?? "Could not add task.");
+      }
+
+      setLocalTaskStatuses((current) => ({
+        ...current,
+        [recommendation.id]: body.task?.status ?? "open",
+      }));
+      toast.success(body.duplicate ? "Already in tasks." : "Added to tasks.");
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not add task.");
+    } finally {
+      setAddingTaskId(null);
+    }
   }
 
   return (
@@ -134,7 +149,7 @@ export function AiSection({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <Sparkles className="size-4 text-muted-foreground" aria-hidden />
+            <Sparkles className="size-4 fill-current text-foreground" aria-hidden />
             <h2 id="ai-section-heading" className="text-base font-semibold">
               AI insights
               {run ? (
@@ -149,15 +164,17 @@ export function AiSection({
           </div>
           <p className="text-xs text-muted-foreground">
             {run ? (
-              <>
-                Last analyzed {formatRelativeShort(run.created_at)} across{" "}
-                {run.input_count} submission{run.input_count === 1 ? "" : "s"}.
+              <span className="inline-flex flex-wrap items-center gap-2">
+                <span>
+                  Last analyzed {formatRelativeShort(run.created_at)} across{" "}
+                  {run.input_count} submission{run.input_count === 1 ? "" : "s"}.
+                </span>
                 {isStale ? (
-                  <span className="ml-1 text-amber-700 dark:text-amber-400">
+                  <span className="text-amber-700 dark:text-amber-400">
                     {totalSubmissions - run.input_count} new since then.
                   </span>
                 ) : null}
-              </>
+              </span>
             ) : (
               "No analysis run yet."
             )}
@@ -194,11 +211,13 @@ export function AiSection({
           <RecommendationsList
             recommendations={visibleRecommendations}
             taskStatuses={taskStatuses}
+            addingTaskId={addingTaskId}
             groupsById={groupsById}
             submissionsById={submissionsById}
-            onAddToTask={(id) => updateTaskStatus(id, "Open")}
-            onTaskStatusChange={updateTaskStatus}
-            onDismiss={(id) => updateTaskStatus(id, "Dismissed")}
+            onAddToTask={handleAddToTask}
+            onDismiss={(id) =>
+              setDismissedRecommendationIds((current) => [...current, id])
+            }
           />
 
           {!showAllRecommendations && hiddenRecommendationCount > 0 ? (
@@ -219,6 +238,11 @@ export function AiSection({
               onClick={() => setShowAllRecommendations(false)}
             >
               Show fewer
+            </Button>
+          ) : null}
+          {Object.keys(taskStatuses).length > 0 ? (
+            <Button asChild type="button" size="sm" variant="outline">
+              <Link href="/tasks">View tasks</Link>
             </Button>
           ) : null}
         </div>

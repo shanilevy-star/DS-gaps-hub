@@ -31,7 +31,7 @@ export default function HomePage() {
             href="/dashboard"
             className="group flex h-full flex-col rounded-lg border border-border bg-card p-5 transition-colors hover:border-foreground/30"
           >
-            <span className="text-sm font-medium">Open the dashboard</span>
+            <span className="text-sm font-medium">Open Insights</span>
             <span className="mt-2 text-sm text-muted-foreground">
               See AI-generated summaries, groupings, and recommendations across
               all submissions.

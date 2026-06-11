@@ -222,11 +222,11 @@ function titleForRecommendation(
     case "new_state":
       return `Add the missing state to ${capitalize(group.title.split(":")[0] ?? "this component")}`;
     case "new_component":
-      return `Consider a new DS component for ${capitalize(group.title.split(":")[0] ?? "this need")}`;
+      return `Create a DS component for ${capitalize(group.title.split(":")[0] ?? "this need")}`;
     case "docs_update":
       return `Clarify usage guidance for ${capitalize(group.title.split(":")[0] ?? "this component")}`;
     case "needs_discovery":
-      return `Investigate ${capitalize(group.title.split(":")[0] ?? "this request")} before committing`;
+      return `Define the DS path for ${capitalize(group.title.split(":")[0] ?? "this request")}`;
     default:
       return group.title;
   }

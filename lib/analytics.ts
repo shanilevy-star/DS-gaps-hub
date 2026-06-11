@@ -1,4 +1,5 @@
 import { gapTypeLabel } from "@/lib/constants/gap-types";
+import { TEAMS } from "@/lib/constants/teams";
 import type { Submission } from "@/lib/types";
 
 type SubmissionLite = Pick<
@@ -43,20 +44,31 @@ export function computeDashboardStats(
   const componentCounts = countBy(submissions, (s) => s.component_name);
   const gapTypeCounts = countBy(submissions, (s) => s.gap_type);
   const teamCounts = countBy(submissions, (s) => s.team);
+  const knownTeamCounts = filterKnownTeamCounts(teamCounts);
+  const knownTeamTotal = sumCounts(knownTeamCounts);
 
   return {
     total,
     newInLastWeek,
     uniqueComponents: componentCounts.length,
-    uniqueTeams: teamCounts.length,
+    uniqueTeams: knownTeamCounts.length,
     blockingCount,
     mostRequestedComponents: toEntries(componentCounts, total).slice(0, 5),
     mostCommonGapTypes: toEntries(
       gapTypeCounts.map(([name, count]) => [gapTypeLabel(name), count]),
       total,
     ).slice(0, 6),
-    teamDistribution: toEntries(teamCounts, total),
+    teamDistribution: toEntries(knownTeamCounts, knownTeamTotal),
   };
+}
+
+function filterKnownTeamCounts(
+  teamCounts: Array<[string, number]>,
+): Array<[string, number]> {
+  const countsByTeam = new Map(teamCounts);
+  return TEAMS.map(
+    (team) => [team, countsByTeam.get(team) ?? 0] as [string, number],
+  ).filter(([, count]) => count > 0);
 }
 
 function countBy<T>(
@@ -70,6 +82,10 @@ function countBy<T>(
     map.set(key, (map.get(key) ?? 0) + 1);
   }
   return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+}
+
+function sumCounts(pairs: Array<[string, number]>): number {
+  return pairs.reduce((sum, [, count]) => sum + count, 0);
 }
 
 function toEntries(

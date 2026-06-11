@@ -105,6 +105,53 @@ export interface Database {
         >;
         Relationships: [];
       };
+      tasks: {
+        Row: {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+          source_analysis_run_id: string | null;
+          source_recommendation_id: string;
+          title: string;
+          rationale: string;
+          priority: "critical" | "high" | "medium" | "low";
+          related_group_ids: string[];
+          status: "open" | "planned" | "in_review" | "done" | "dismissed";
+          jira_issue_id: string | null;
+          jira_issue_key: string | null;
+          jira_issue_url: string | null;
+          jira_status: string | null;
+          jira_synced_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          source_analysis_run_id?: string | null;
+          source_recommendation_id: string;
+          title: string;
+          rationale: string;
+          priority: "critical" | "high" | "medium" | "low";
+          related_group_ids?: string[];
+          status?: "open" | "planned" | "in_review" | "done" | "dismissed";
+          jira_issue_id?: string | null;
+          jira_issue_key?: string | null;
+          jira_issue_url?: string | null;
+          jira_status?: string | null;
+          jira_synced_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["tasks"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "tasks_source_analysis_run_id_fkey";
+            columns: ["source_analysis_run_id"];
+            referencedRelation: "analysis_runs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<never, never>;
     Functions: Record<never, never>;

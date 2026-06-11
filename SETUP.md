@@ -65,15 +65,16 @@ Open [http://localhost:3000](http://localhost:3000).
 | Magic link doesn’t sign you in | Add redirect URL `http://localhost:3000/auth/callback` in Auth URL config. |
 | “Could not save submission” | Run `supabase/setup-all.sql` in the SQL editor. |
 | Image upload fails | Confirm bucket `submission-images` exists (created by setup SQL). |
-| Dashboard AI empty | Click **Run analysis** after you have submissions (or after seed). |
+| Dashboard AI empty | Click **Run analysis** after you have real submissions. |
 
-## Optional: live OpenAI analysis
+## Live OpenAI analysis
 
-In `.env.local`:
+For local development, set these in `.env.local`:
 
 ```env
 USE_AI_FIXTURES=false
 OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4o-mini
 ```
 
-Fixture mode remains the default and is enough for demos.
+For Netlify production, add the same variables in **Site configuration → Environment variables**. Mark `OPENAI_API_KEY` as a secret. Set `USE_AI_FIXTURES=true` only for local/demo fixture analysis.

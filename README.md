@@ -9,7 +9,7 @@ This is a coded prototype, not a production app. The UI uses shadcn/ui as scaffo
 - Next.js 16 (App Router) + TypeScript
 - Tailwind v4 + shadcn/ui
 - Supabase: Postgres, Storage, magic-link auth
-- OpenAI (optional) for live AI analysis; fixtures by default
+- OpenAI for production AI analysis; explicit fixtures for local/demo use
 
 ## Quick start
 
@@ -39,7 +39,7 @@ This is a coded prototype, not a production app. The UI uses shadcn/ui as scaffo
 
    - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from your Supabase project settings.
    - `NEXT_PUBLIC_ALLOWED_EMAIL_DOMAINS` (optional, comma-separated) to limit who can sign in.
-   - `USE_AI_FIXTURES=true` keeps the AI dashboard fully offline. Set to `false` and add `OPENAI_API_KEY` to call OpenAI for real.
+   - `USE_AI_FIXTURES=false`, `OPENAI_API_KEY`, and `OPENAI_MODEL` configure production OpenAI analysis. Set `USE_AI_FIXTURES=true` only for local/demo fixture analysis.
 
 4. **Run the dev server**
 
@@ -64,12 +64,12 @@ This is a coded prototype, not a production app. The UI uses shadcn/ui as scaffo
 
 ## AI modes
 
-The dashboard has two modes, switched at the server level by env var:
+The dashboard has two server-side analysis modes:
 
-- **Fixture mode (default)** &mdash; deterministic groupings + recommendations derived directly from the current submissions. No API key required. Use this for design reviews and screen recordings.
-- **Live mode** &mdash; calls OpenAI with a structured JSON schema. Enable by setting `USE_AI_FIXTURES=false` and `OPENAI_API_KEY=...` in `.env.local`. Falls back to fixtures automatically if the live call fails.
+- **Live mode (production)** &mdash; calls OpenAI with a structured JSON schema. Enable with `USE_AI_FIXTURES=false`, `OPENAI_API_KEY=...`, and `OPENAI_MODEL=gpt-4o-mini`.
+- **Fixture mode (local/demo only)** &mdash; deterministic groupings + recommendations derived directly from the current submissions. Enable explicitly with `USE_AI_FIXTURES=true` when you need an offline demo.
 
-Analysis runs are triggered manually from the dashboard's "Re-run analysis" button. Each run is cached in `analysis_runs`, so the dashboard renders the latest result instantly on page load.
+Analysis runs are triggered manually from the dashboard's "Run analysis" or "Re-run analysis" button. Each successful live run is cached in `analysis_runs`, so the dashboard renders the latest result instantly on page load. Live analysis failures return an error instead of saving fixture recommendations.
 
 ## Limitations of the prototype
 

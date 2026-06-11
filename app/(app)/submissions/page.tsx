@@ -10,6 +10,7 @@ import { TEAMS } from "@/lib/constants/teams";
 import { getCurrentUser } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
+import { filterRealSubmissions } from "@/lib/submissions";
 import type { Submission } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -26,15 +27,6 @@ type SearchParams = {
   blocking?: string;
   scope?: string;
 };
-
-const DEMO_SUBMITTER_EMAILS = new Set([
-  "maya@example.com",
-  "theo@example.com",
-  "priya@example.com",
-  "sam@example.com",
-  "noor@example.com",
-  "lin@example.com",
-]);
 
 export default async function SubmissionsPage({
   searchParams,
@@ -117,7 +109,7 @@ export default async function SubmissionsPage({
     );
   }
 
-  const submissions = ((data ?? []) as Pick<
+  const submissions = filterRealSubmissions((data ?? []) as Pick<
     Submission,
     | "id"
     | "title"
@@ -129,11 +121,7 @@ export default async function SubmissionsPage({
     | "submitted_by"
     | "submitter_email"
     | "created_at"
-  >[]).filter(
-    (submission) =>
-      !submission.submitter_email ||
-      !DEMO_SUBMITTER_EMAILS.has(submission.submitter_email),
-  );
+  >[]);
 
   const knownTeams = Array.from(
     new Set<string>([...TEAMS, ...submissions.map((s) => s.team)]),

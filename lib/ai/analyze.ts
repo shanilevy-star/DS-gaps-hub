@@ -24,29 +24,23 @@ type SubmissionLite = Pick<
 
 export function resolveAnalyzeMode(): AnalyzeMode {
   const flag = process.env.USE_AI_FIXTURES?.toLowerCase();
-  const hasKey = Boolean(process.env.OPENAI_API_KEY);
-  if (flag === "false" && hasKey) return "live";
-  return "fixtures";
+  return flag === "true" ? "fixtures" : "live";
 }
 
 export async function analyze(
   submissions: SubmissionLite[],
 ): Promise<{ payload: AnalysisOutput; mode: AnalyzeMode }> {
   const mode = resolveAnalyzeMode();
-  if (mode === "live") {
-    try {
-      const payload = await runLiveAnalysis(submissions);
-      return { payload, mode: "live" };
-    } catch (error) {
-      console.error("Live analysis failed, falling back to fixtures.", error);
-      return {
-        payload: generateFixtureAnalysis(submissions),
-        mode: "fixtures",
-      };
-    }
+  if (mode === "fixtures") {
+    return {
+      payload: generateFixtureAnalysis(submissions),
+      mode: "fixtures",
+    };
   }
+
+  const payload = await runLiveAnalysis(submissions);
   return {
-    payload: generateFixtureAnalysis(submissions),
-    mode: "fixtures",
+    payload,
+    mode: "live",
   };
 }

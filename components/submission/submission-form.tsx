@@ -567,7 +567,7 @@ function SuccessState({
         </h2>
         <p className="mt-1 text-sm text-emerald-900/80 dark:text-emerald-200/80">
           &ldquo;{success.title}&rdquo; was saved. The DS team will pick it up in
-          the dashboard.
+          Insights.
         </p>
         {success.failedImageCount > 0 ? (
           <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">

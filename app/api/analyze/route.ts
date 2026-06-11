@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { analyze } from "@/lib/ai/analyze";
 import type { AnalysisRun } from "@/lib/ai/types";
+import { filterRealSubmissions } from "@/lib/submissions";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 import type { Submission } from "@/lib/types";
@@ -34,7 +35,7 @@ export async function POST() {
     return NextResponse.json({ error: fetchError.message }, { status: 500 });
   }
 
-  const lite = (submissions ?? []) as Array<
+  const lite = filterRealSubmissions((submissions ?? []) as Array<
     Pick<
       Submission,
       | "id"
@@ -51,9 +52,32 @@ export async function POST() {
       | "proposed_support"
       | "created_at"
     >
-  >;
+  >);
 
-  const { payload, mode } = await analyze(lite);
+  if (lite.length === 0) {
+    return NextResponse.json(
+      { error: "Add at least one submission before running analysis." },
+      { status: 400 },
+    );
+  }
+
+  let analysisResult: Awaited<ReturnType<typeof analyze>>;
+  try {
+    analysisResult = await analyze(lite);
+  } catch (error) {
+    console.error("AI analysis failed.", error);
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? `AI analysis failed: ${error.message}`
+            : "AI analysis failed.",
+      },
+      { status: 502 },
+    );
+  }
+
+  const { payload, mode } = analysisResult;
 
   const { data: inserted, error: insertError } = await supabase
     .from("analysis_runs")

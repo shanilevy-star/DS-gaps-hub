@@ -1,7 +1,6 @@
 // Live OpenAI-backed analysis. Returns a structured AnalysisOutput by
-// constraining the model with a JSON schema. If anything goes wrong - missing
-// key, network error, schema violation - the caller (lib/ai/analyze.ts)
-// catches and falls back to fixtures.
+// constraining the model with a JSON schema. Missing keys, network errors, and
+// schema violations are surfaced to the API route instead of saving fixtures.
 
 import OpenAI from "openai";
 import { buildUserPrompt, SYSTEM_PROMPT } from "./prompt";
